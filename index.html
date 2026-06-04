@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantVision AI - Dual Trading Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+
+    <header class="border-b border-slate-800 bg-slate-900/40 backdrop-blur px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">⚡</span>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                    QuantVision AI
+                </h1>
+                <p class="text-[10px] text-slate-500 font-mono tracking-widest uppercase">Trading Decision Engine v3.0</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-1 text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+            <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Systems Operational
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            
+            <div class="bg-slate-900/50 border border-slate-800 p-2 rounded-xl flex gap-2">
+                <button id="toggleLiveBtn" class="flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-200 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-md">
+                    🌐 Live Market Ticker
+                </button>
+                <button id="toggleUploadBtn" class="flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all duration-200 hover:bg-slate-800/50 text-slate-400 border border-transparent">
+                    📁 Snapshot Upload
+                </button>
+            </div>
+
+            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col gap-6 shadow-xl">
+                
+                <div id="liveInputPane" class="space-y-4">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-200">Live Ticker Stream Input</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Fetches live streaming price history directly from Yahoo Finance.</p>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-1.5">Asset Symbol</label>
+                        <input type="text" id="tickerInput" value="BTC-USD" placeholder="e.g. AAPL, TSLA, NVDA, BTC-USD" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm font-semibold tracking-wide focus:outline-none focus:border-cyan-500 text-slate-200 uppercase" />
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-1.5">Horizon</label>
+                            <select id="timeframeInput" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-cyan-500 text-slate-300">
+                                <option value="1mo">1 Month</option>
+                                <option value="3mo" selected>3 Months</option>
+                                <option value="6mo">6 Months</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-mono text-slate-400 uppercase tracking-wider mb-1.5">Interval</label>
+                            <select id="intervalInput" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-cyan-500 text-slate-300">
+                                <option value="1d" selected>Daily candles</option>
+                                <option value="1wk">Weekly candles</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="uploadInputPane" class="space-y-4 hidden">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-200">Local Chart File Processing</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Upload a raw crop image screenshot to look for patterns.</p>
+                    </div>
+                    <label class="border border-dashed border-slate-800 hover:border-emerald-500/30 bg-slate-950/40 rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 group min-h-[140px]">
+                        <input type="file" id="chartFileInput" accept="image/*" class="hidden" />
+                        <span class="text-2xl group-hover:scale-110 transition duration-200">📊</span>
+                        <span class="text-xs font-medium text-slate-400 group-hover:text-slate-300" id="fileText">Select chart screenshot</span>
+                    </label>
+                </div>
+
+                <button id="masterActionBtn" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/5 hover:opacity-95 transition cursor-pointer">
+                    Run Live Neural Scan
+                </button>
+            </div>
+        </div>
+
+        <div class="lg:col-span-8 flex flex-col gap-6">
+            
+            <div id="verdictBanner" class="bg-slate-900/30 border border-slate-800 rounded-2xl p-6 flex items-start gap-4 transition-all duration-300 opacity-60">
+                <div id="verdictBadge" class="h-12 w-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xl shrink-0">
+                    📡
+                </div>
+                <div>
+                    <div class="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Automated Verdict Output</div>
+                    <h2 id="verdictTitle" class="text-xl font-extrabold text-slate-300 tracking-tight mt-0.5">STANDBY MODE</h2>
+                    <p id="verdictReason" class="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">System waiting for user execution token signal arrays to compute quantitative weights structures.</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex-1 min-h-[400px]">
+                <h3 class="text-xs font-bold font-mono uppercase tracking-widest text-slate-400 border-b border-slate-800 pb-3 mb-4">Neural Architecture Detection Logs</h3>
+                
+                <div id="logPlaceholder" class="h-[300px] flex flex-col items-center justify-center text-center gap-2 text-slate-600">
+                    <span class="text-3xl">💻</span>
+                    <p class="text-xs font-mono">Execute pipeline model processing loop to capture stream vectors.</p>
+                </div>
+
+                <div id="detectionsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // DOM Nodes Mapping Configuration
+        const toggleLiveBtn = document.getElementById('toggleLiveBtn');
+        const toggleUploadBtn = document.getElementById('toggleUploadBtn');
+        const liveInputPane = document.getElementById('liveInputPane');
+        const uploadInputPane = document.getElementById('uploadInputPane');
+        const masterActionBtn = document.getElementById('masterActionBtn');
+        
+        const chartFileInput = document.getElementById('chartFileInput');
+        const fileText = document.getElementById('fileText');
+        const tickerInput = document.getElementById('tickerInput');
+        const timeframeInput = document.getElementById('timeframeInput');
+        const intervalInput = document.getElementById('intervalInput');
+
+        const verdictBanner = document.getElementById('verdictBanner');
+        const verdictBadge = document.getElementById('verdictBadge');
+        const verdictTitle = document.getElementById('verdictTitle');
+        const verdictReason = document.getElementById('verdictReason');
+        const logPlaceholder = document.getElementById('logPlaceholder');
+        const detectionsGrid = document.getElementById('detectionsGrid');
+
+        let activeMode = "LIVE"; // Defaults loop tracker pointer state to live data extraction
+
+        // Controller Switching Actions Setup
+        toggleLiveBtn.addEventListener('click', () => {
+            activeMode = "LIVE";
+            toggleLiveBtn.className = "flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-md";
+            toggleUploadBtn.className = "flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all hover:bg-slate-800/50 text-slate-400 border border-transparent";
+            liveInputPane.classList.remove('hidden');
+            uploadInputPane.classList.add('hidden');
+            masterActionBtn.innerText = "Run Live Neural Scan";
+        });
+
+        toggleUploadBtn.addEventListener('click', () => {
+            activeMode = "UPLOAD";
+            toggleUploadBtn.className = "flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-md";
+            toggleLiveBtn.className = "flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all hover:bg-slate-800/50 text-slate-400 border border-transparent";
+            uploadInputPane.classList.remove('hidden');
+            liveInputPane.classList.add('hidden');
+            masterActionBtn.innerText = "Process Snapshot File";
+        });
+
+        // Track image input name change locally
+        chartFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) fileText.innerText = file.name;
+        });
+
+        // Primary Unified Execution Pipeline Request Function Block
+        masterActionBtn.addEventListener('click', async () => {
+            masterActionBtn.disabled = true;
+            masterActionBtn.innerText = "Processing Pipeline Engine Run...";
+            
+            // Set running visual styles
+            verdictBanner.className = "bg-slate-900/30 border border-slate-800 rounded-2xl p-6 flex items-start gap-4 transition-all duration-300 opacity-100 animate-pulse text-cyan-400";
+            verdictTitle.innerText = "CALCULATING DATA MATRICES...";
+            verdictReason.innerText = "Pulling price points and computing YOLO neural layers locally...";
+            logPlaceholder.classList.add('hidden');
+            detectionsGrid.classList.add('hidden');
+
+            try {
+                let response, data;
+
+                if (activeMode === "LIVE") {
+                    const sym = tickerInput.value.trim().toUpperCase();
+                    const tf = timeframeInput.value;
+                    const iv = intervalInput.value;
+                    
+                    if(!sym) throw new Error("Ticker field configuration validation error empty.");
+                    
+                    response = await fetch(`http://127.0.0.1:8000/predict/live/${sym}?timeframe=${tf}&interval=${iv}`);
+                    data = await response.json();
+                } else {
+                    const file = chartFileInput.files[0];
+                    if (!file) throw new Error("No image file selected for analysis.");
+
+                    const formData = new FormData();
+                    formData.append("file", file);
+
+                    response = await fetch("http://127.0.0.1:8000/predict", {
+                        method: "POST",
+                        body: formData
+                    });
+                    data = await response.json();
+                }
+
+                if (!response.ok) throw new Error(data.detail || "Server communication protocol exception.");
+
+                // Process Verdict Graphics Colors UI dynamically
+                let colorClasses = "bg-slate-900/50 border-slate-800 text-slate-300";
+                let icon = "🟡";
+                
+                if (data.market_verdict.includes("BUY")) {
+                    colorClasses = "bg-emerald-950/20 border-emerald-500/30 text-emerald-400 shadow-lg shadow-emerald-500/5";
+                    icon = "🟢";
+                } else if (data.market_verdict.includes("SELL")) {
+                    colorClasses = "bg-rose-950/20 border-rose-500/30 text-rose-400 shadow-lg shadow-rose-500/5";
+                    icon = "🔴";
+                }
+
+                // Render Verdict Results Top Block
+                verdictBanner.className = `border rounded-2xl p-6 flex items-start gap-4 transition-all duration-300 opacity-100 ${colorClasses}`;
+                verdictBadge.innerText = icon;
+                verdictTitle.innerText = data.market_verdict;
+                verdictReason.innerText = data.verdict_reasoning;
+
+                // Render Individual Detections List Log Cards
+                detectionsGrid.innerHTML = "";
+                if (data.detections && data.detections.length > 0) {
+                    data.detections.forEach(det => {
+                        const card = document.createElement('div');
+                        card.className = "bg-slate-950 border border-slate-800/80 p-4 rounded-xl flex justify-between items-center hover:border-slate-700/50 transition";
+                        card.innerHTML = `
+                            <div>
+                                <div class="text-xs font-bold text-slate-200 uppercase tracking-wider">${det.pattern.replace(/_/g, ' ')}</div>
+                                <div class="text-[10px] font-mono text-slate-500 mt-1">Horizon Matrix: [${det.bounding_box.xmin}, ${det.bounding_box.ymin}]</div>
+                            </div>
+                            <span class="px-2 py-1 bg-slate-900 border border-slate-800 rounded-md text-[10px] font-mono font-bold text-slate-400">
+                                🎯 ${det.confidence_percentage}
+                            </span>
+                        `;
+                        detectionsGrid.appendChild(card);
+                    });
+                    detectionsGrid.classList.remove('hidden');
+                } else {
+                    logPlaceholder.innerHTML = `
+                        <span class="text-xl">⚖️</span>
+                        <p class="text-xs font-mono text-slate-500">No high-probability custom candelstick structures mapped over this index query range.</p>
+                    `;
+                    logPlaceholder.classList.remove('hidden');
+                }
+
+            } catch (err) {
+                verdictBanner.className = "bg-rose-950/20 border-rose-500/30 text-rose-400 rounded-2xl p-6 flex items-start gap-4 opacity-100";
+                verdictBadge.innerText = "❌";
+                verdictTitle.innerText = "PIPELINE LOGIC EXCEPTION";
+                verdictReason.innerText = err.message || "Ensure the backend is live by running 'python -m uvicorn main:app' in your project terminal.";
+                logPlaceholder.classList.remove('hidden');
+            } finally {
+                masterActionBtn.disabled = false;
+                masterActionBtn.innerText = activeMode === "LIVE" ? "Run Live Neural Scan" : "Process Snapshot File";
+            }
+        });
+    </script>
+</body>
+</html>
